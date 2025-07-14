@@ -94,36 +94,44 @@ static inline int default_handle_entry(context_info_t *info);
 
 #include "core.c"
 
-static __always_inline int get_ret_key(int func)
+static __always_inline u64 get_ret_key(int func)
 {
-	return func;
+	return (bpf_get_current_pid_tgid() << 32) + func;
 }
 
 static inline void get_ret(context_info_t *info)
 {
-	int *ref, key;
+	int *ref;
+	u64 key;
 
 	if (!(info->func_status & FUNC_STATUS_RET))
 		return;
 
 	key = get_ret_key(info->func);
 	ref = bpf_map_lookup_elem(&m_ret, &key);
-	if (!ref)
+	if (!ref) {
+		int v = 1;
+
+		bpf_map_update_elem(&m_ret, &key, &v, 0);
 		return;
+	}
 	(*ref)++;
 }
 
 static inline int put_ret(bpf_args_t *args, int func)
 {
-	int *ref, key;
+	int *ref;
+	u64 key;
 
 	if (!(get_func_status(args, func) & FUNC_STATUS_RET))
 		return 1;
 
 	key = get_ret_key(func);
 	ref = bpf_map_lookup_elem(&m_ret, &key);
-	if (!ref || *ref <= 0)
+	if (!ref || *ref <= 0) {
+		bpf_map_delete_elem(&m_ret, &key);
 		return 1;
+	}
 	(*ref)--;
 	return 0;
 }
