@@ -14,10 +14,14 @@ __u32 kern_ver SEC("version") = KERN_VER;
 #endif
 
 struct {
-	__uint(type, BPF_MAP_TYPE_PERCPU_ARRAY);
-	__uint(key_size, sizeof(int));
+#ifdef BPF_MAP_TYPE_LRU_HASH
+	__uint(type, BPF_MAP_TYPE_LRU_HASH);
+#else
+	__uint(type, BPF_MAP_TYPE_HASH);
+#endif
+	__uint(key_size, sizeof(u64));
 	__uint(value_size, sizeof(int));
-	__uint(max_entries, TRACE_MAX);
+	__uint(max_entries, 1024);
 } m_ret SEC(".maps");
 
 #ifdef __F_STACK_TRACE
