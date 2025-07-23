@@ -405,7 +405,7 @@ int main(int argc, char *argv[])
 	signal(SIGINT, do_exit);
 
 	pr_info("begin trace...\n");
-	trace_poll(trace_ctx);
+	trace_poll();
 	do_exit(0);
 	return 0;
 err:
