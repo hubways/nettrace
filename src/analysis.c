@@ -1044,8 +1044,9 @@ DEFINE_ANALYZER_ENTRY(rtt, TRACE_MODE_ALL_MASK)
 	char *msg = malloc(1024);
 
 	msg[0] = '\0';
-	sprintf(msg, PFMT_EMPH_STR(" *rtt:%ums, rtt_min:%ums*"),
-		event->first_rtt, event->last_rtt);
+	sprintf(msg, PFMT_EMPH_STR(" *rtt:%u.%03ums, rtt_min:%u.%03ums*"),
+		event->first_rtt / 1000, event->first_rtt % 1000,
+		event->last_rtt / 1000, event->last_rtt % 1000);
 	entry_set_msg(e, msg);
 
 	return RESULT_CONT;

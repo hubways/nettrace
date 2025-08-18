@@ -783,9 +783,6 @@ DEFINE_KPROBE_INIT(tcp_ack_update_rtt, tcp_ack_update_rtt, 6,
 	if ((long)first_rtt < 0)
 		return -1;
 
-	first_rtt = first_rtt / 1000;
-	last_rtt = last_rtt / 1000;
-
 	if (first_rtt < info->args->first_rtt || last_rtt < info->args->last_rtt)
 		return -1;
 

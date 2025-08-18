@@ -542,8 +542,11 @@ static int trace_prepare_args()
 	}
 
 	/* enable tcp_ack_update_rtt as monitor if rtt set */
-	if (bpf_args->first_rtt || bpf_args->last_rtt)
+	if (bpf_args->first_rtt || bpf_args->last_rtt) {
+		bpf_args->first_rtt *= 1000;
+		bpf_args->last_rtt *= 1000;
 		trace_tcp_ack_update_rtt.monitor = 2;
+	}
 
 	if (trace_prepare_mode(args))
 		goto err;
