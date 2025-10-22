@@ -199,6 +199,8 @@ enum rule_type {
 };
 
 #define MAX_RULE_COUNT	8
+#define MAX_STATS_BUCKETS 17
+#define LAST_STATS_BUCKET (MAX_STATS_BUCKETS - 1)
 typedef struct {
 	int expected[MAX_RULE_COUNT];
 	int op[MAX_RULE_COUNT];
