@@ -174,8 +174,8 @@ static __always_inline void update_stats_log(u32 val)
 {
 	u32 key = 0, i = 0, tmp = 2;
 
-	#pragma clang loop unroll_count(16)
-	for (; i < 16; i++) {
+	#pragma clang loop unroll_count(LAST_STATS_BUCKET)
+	for (; i < LAST_STATS_BUCKET; i++) {
 		if (val < tmp)
 			break;
 		tmp <<= 1;

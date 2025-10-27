@@ -654,8 +654,7 @@ int stats_poll_handler()
 {
 	int map_fd = bpf_object__find_map_fd_by_name(trace_ctx.obj, "m_stats");
 	char buf[128], *header, *unit;
-	__u64 count[16];
-	
+	__u64 count[MAX_STATS_BUCKETS] = {};
 	int i;
 
 	if (!map_fd) {
@@ -675,34 +674,42 @@ int stats_poll_handler()
 		int start = 0, j;
 		__u64 total = 0;
 
-		for (i = 0; i < 16; i++) {
+		for (i = 0; i < ARRAY_SIZE(count); i++) {
 			bpf_map_lookup_elem(map_fd, &i, count + i);
 			total += count[i];
 		}
 
 		pr_info("%-34s%llu\n", header, total);
-		for (i = 0; i < 16; i++) {
+		for (i = 0; i < ARRAY_SIZE(count); i++) {
 			bool has_count = false;
 			int p = 0, t = 0;
 
-			for (j = i; j < 16; j++) {
-				if (count[j])
+			/* check if there is data in the next bucket, used to terminate the output early */
+			for (j = i; j < ARRAY_SIZE(count); j++) {
+				if (count[j]) {
 					has_count = true;
+					break;
+				}
 			}
 
 			if (!has_count && i > 8)
 				break;
 
-			start = 1 << i;
-			sprintf(buf, "%d - %5d%s", start == 1 ? 0 : start,
-				(start << 1) - 1, unit);
+			if (i == LAST_STATS_BUCKET) {
+				snprintf(buf, sizeof(buf), ">= %d%s", 1 << LAST_STATS_BUCKET, unit);
+			} else {
+				start = 1 << i;
+				snprintf(buf, sizeof(buf), "%d - %5d%s",
+				         start == 1 ? 0 : start,
+				         (start << 1) - 1, unit);
+			}
+
 			if (total) {
 				p = count[i] / total;
 				t = (count[i] % total) * 10000 / total;
 			}
 
-			pr_info("%32s: %-8llu %d.%04d\n", buf, count[i],
-				p, t);
+			pr_info("%32s: %-8llu %d.%04d\n", buf, count[i], p, t);
 		}
 		sleep(1);
 	}
